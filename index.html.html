@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Habitudes">
+<title>Mes habitudes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1A1917;
+    --text-2: #6B6A66;
+    --text-3: #B0AFA9;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --blue-text: #0C447C;
+    --green: #0F6E56;
+    --green-light: #E1F5EE;
+    --green-text: #085041;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --amber-text: #633806;
+    --dark: #2C2C2A;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1A1917;
+      --surface: #252422;
+      --border: rgba(255,255,255,0.1);
+      --border-md: rgba(255,255,255,0.18);
+      --text: #F0EDE8;
+      --text-2: #9B9A96;
+      --text-3: #5A5956;
+      --blue: #378ADD;
+      --blue-light: #0C447C;
+      --blue-text: #B5D4F4;
+      --green: #1D9E75;
+      --green-light: #085041;
+      --green-text: #9FE1CB;
+      --amber: #EF9F27;
+      --amber-light: #633806;
+      --amber-text: #FAC775;
+      --dark: #D3D1C7;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 18px;
+  }
+  .header-left {}
+  .app-title {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+  .today-date {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+  .streak-badge {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text-2);
+    font-family: 'DM Mono', monospace;
+  }
+  .streak-badge span { color: var(--text); font-weight: 500; }
+
+  /* Habit cards */
+  .habits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .habit-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px 12px;
+    cursor: pointer;
+    transition: transform 0.12s, opacity 0.12s;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .habit-card:active { transform: scale(0.96); }
+  .habit-card.done { border-color: transparent; }
+  .habit-card.done::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.08);
+  }
+  .habit-pompes.done { background: var(--blue); }
+  .habit-alcool.done { background: var(--green); }
+  .habit-sport.done { background: var(--amber); }
+
+  .habit-icon { font-size: 20px; display: block; margin-bottom: 10px; }
+  .habit-name {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+  .habit-status { font-size: 12px; font-weight: 500; }
+  .habit-card.done .habit-name { color: rgba(255,255,255,0.65); }
+  .habit-card.done .habit-status { color: rgba(255,255,255,0.95); }
+
+  /* Score row */
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 10px 8px;
+    text-align: center;
+  }
+  .score-num { font-size: 24px; font-weight: 500; font-family: 'DM Mono', monospace; }
+  .score-label { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+  .score-pompes .score-num { color: var(--blue); }
+  .score-alcool .score-num { color: var(--green); }
+  .score-sport .score-num { color: var(--amber); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    padding: 6px 0;
+    border-radius: 18px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-2);
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tab.active {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  /* Grid */
+  .grid-legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-2);
+  }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  .grid-wrap { overflow-x: auto; padding-bottom: 4px; }
+  .months-stack { display: flex; flex-direction: column; gap: 5px; }
+  .month-row { display: flex; align-items: center; gap: 5px; }
+  .month-lbl { font-size: 10px; color: var(--text-3); width: 26px; flex-shrink: 0; font-family: 'DM Mono', monospace; }
+  .days-row { display: flex; gap: 2px; }
+  .day-cell {
+    border-radius: 2px;
+    flex-shrink: 0;
+    transition: transform 0.1s;
+    cursor: default;
+  }
+  .day-cell.today { outline: 2px solid var(--text); outline-offset: 1px; }
+  .week-day-labels { display: flex; gap: 2px; margin-left: 31px; margin-bottom: 2px; }
+  .wdl { font-size: 9px; color: var(--text-3); text-align: center; font-family: 'DM Mono', monospace; }
+  .year-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin: 10px 0 4px; font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="app-title">Mes habitudes</div>
+      <div class="today-date" id="today-label"></div>
+    </div>
+    <div class="streak-badge">🔥 <span id="streak-count">0</span> j</div>
+  </div>
+
+  <div class="habits-grid">
+    <div class="habit-card habit-pompes" id="card-pompes" onclick="toggle('pompes')">
+      <span class="habit-icon">💪</span>
+      <div class="habit-name">Pompes</div>
+      <div class="habit-status" id="status-pompes">36 pompes</div>
+    </div>
+    <div class="habit-card habit-alcool" id="card-alcool" onclick="toggle('alcool')">
+      <span class="habit-icon">🚱</span>
+      <div class="habit-name">Sans alcool</div>
+      <div class="habit-status" id="status-alcool">À valider</div>
+    </div>
+    <div class="habit-card habit-sport" id="card-sport" onclick="toggle('sport')">
+      <span class="habit-icon">🏃</span>
+      <div class="habit-name">Sport</div>
+      <div class="habit-status" id="status-sport">À faire</div>
+    </div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-card score-pompes">
+      <div class="score-num" id="score-pompes">0</div>
+      <div class="score-label">pompes</div>
+    </div>
+    <div class="score-card score-alcool">
+      <div class="score-num" id="score-alcool">0</div>
+      <div class="score-label">sans alcool</div>
+    </div>
+    <div class="score-card score-sport">
+      <div class="score-num" id="score-sport">0</div>
+      <div class="score-label">sport</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setView('semaine',this)">Semaine</button>
+    <button class="tab" onclick="setView('mois',this)">Mois</button>
+    <button class="tab" onclick="setView('annee',this)">Année</button>
+  </div>
+
+  <div class="grid-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>Pompes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0F6E56"></div>Sans alcool</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#854F0B"></div>Sport</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#444441"></div>Les 3</div>
+  </div>
+  <div class="grid-wrap">
+    <div id="grid-container"></div>
+  </div>
+</div>
+
+<script>
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const HABITS = ['pompes','alcool','sport'];
+const COLORS = { pompes:'#185FA5', alcool:'#0F6E56', sport:'#854F0B' };
+const LABELS = { pompes:'Pompes', alcool:'Sans alcool', sport:'Sport' };
+const KEY = 'habits-data-v1';
+let data = {};
+let currentView = 'semaine';
+
+function dateKey(d) { return d.toISOString().split('T')[0]; }
+function todayKey() { return dateKey(TODAY); }
+
+function load() {
+  try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { data = {}; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function toggle(habit) {
+  const k = todayKey();
+  if (!data[k]) data[k] = {};
+  data[k][habit] = !data[k][habit];
+  save();
+  renderAll();
+}
+
+function cellColor(dayData) {
+  if (!dayData) return null;
+  const done = HABITS.filter(h => dayData[h]);
+  if (!done.length) return null;
+  if (done.length === 3) return '#444441';
+  if (done.length === 2) return COLORS[done[0]];
+  return COLORS[done[0]];
+}
+
+function makeDayCell(dateStr, isFuture, size) {
+  const cell = document.createElement('div');
+  cell.className = 'day-cell';
+  cell.style.width = size + 'px';
+  cell.style.height = size + 'px';
+  const isToday = dateStr === todayKey();
+  if (isToday) cell.classList.add('today');
+  if (isFuture) {
+    cell.style.background = 'var(--border)';
+    cell.style.opacity = '0.4';
+  } else {
+    const color = cellColor(data[dateStr]);
+    cell.style.background = color || 'var(--border)';
+    if (!color) cell.style.opacity = '0.5';
+    const dayData = data[dateStr];
+    const d = new Date(dateStr + 'T00:00:00');
+    const ms = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+    const done = dayData ? HABITS.filter(h => dayData[h]).map(h => LABELS[h]) : [];
+    const tip = d.getDate() + ' ' + ms[d.getMonth()] + (done.length ? ' — ' + done.join(', ') : ' — rien');
+    cell.title = tip;
+  }
+  return cell;
+}
+
+function setView(v, btn) {
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function renderGrid() {
+  const c = document.getElementById('grid-container');
+  c.innerHTML = '';
+  if (currentView === 'semaine') renderWeek(c);
+  else if (currentView === 'mois') renderMonth(c);
+  else renderYear(c);
+}
+
+function renderWeek(c) {
+  const dayNames = ['L','M','M','J','V','S','D'];
+  const weeks = 14;
+  const startDate = new Date(TODAY);
+  startDate.setDate(startDate.getDate() - (weeks * 7 - 1));
+  const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+
+  const wlabels = document.createElement('div');
+  wlabels.className = 'week-day-labels';
+  dayNames.forEach(n => {
+    const l = document.createElement('div');
+    l.className = 'wdl';
+    l.style.width = '22px';
+    l.textContent = n;
+    wlabels.appendChild(l);
+  });
+
+  const stack = document.createElement('div');
+  stack.className = 'months-stack';
+
+  for (let w = 0; w < weeks; w++) {
+    const row = document.createElement('div');
+    row.className = 'month-row';
+    const ml = document.createElement('div');
+    ml.className = 'month-lbl';
+    const wStart = new Date(startDate);
+    wStart.setDate(wStart.getDate() + w * 7);
+    ml.textContent = (w === 0 || wStart.getDate() <= 7) ? months[wStart.getMonth()] : '';
+    row.appendChild(ml);
+    const days = document.createElement('div');
+    days.className = 'days-row';
+    for (let d = 0; d < 7; d++) {
+      const cur = new Date(wStart);
+      cur.setDate(cur.getDate() + d);
+      days.appendChild(makeDayCell(dateKey(cur), cur > TODAY, 22));
+    }
+    row.appendChild(days);
+    stack.appendChild(row);
+  }
+  c.appendChild(wlabels);
+  c.appendChild(stack);
+}
+
+function renderMonth(c) {
+  const months = ['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août','Sept','Oct','Nov','Déc'];
+  const year = TODAY.getFullYear();
+  const stack = document.createElement('div');
+  stack.className = 'months-stack';
+  for (let m = 0; m < 12; m++) {
+    const row = document.createElement('div');
+    row.className = 'month-row';
+    const ml = document.createElement('div');
+    ml.className = 'month-lbl';
+    ml.textContent = months[m];
+    row.appendChild(ml);
+    const days = document.createElement('div');
+    days.className = 'days-row';
+    const dim = new Date(year, m + 1, 0).getDate();
+    for (let d = 1; d <= dim; d++) {
+      const cur = new Date(year, m, d);
+      days.appendChild(makeDayCell(dateKey(cur), cur > TODAY, 13));
+    }
+    row.appendChild(days);
+    stack.appendChild(row);
+  }
+  c.appendChild(stack);
+}
+
+function renderYear(c) {
+  const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  for (let y = 0; y < 3; y++) {
+    const year = TODAY.getFullYear() - 2 + y;
+    const yl = document.createElement('div');
+    yl.className = 'year-label';
+    yl.textContent = year;
+    c.appendChild(yl);
+    const stack = document.createElement('div');
+    stack.className = 'months-stack';
+    for (let m = 0; m < 12; m++) {
+      const row = document.createElement('div');
+      row.className = 'month-row';
+      const ml = document.createElement('div');
+      ml.className = 'month-lbl';
+      ml.textContent = months[m];
+      row.appendChild(ml);
+      const days = document.createElement('div');
+      days.className = 'days-row';
+      const dim = new Date(year, m + 1, 0).getDate();
+      for (let d = 1; d <= dim; d++) {
+        const cur = new Date(year, m, d);
+        days.appendChild(makeDayCell(dateKey(cur), cur > TODAY, 10));
+      }
+      row.appendChild(days);
+      stack.appendChild(row);
+    }
+    c.appendChild(stack);
+  }
+}
+
+function renderToday() {
+  const k = todayKey();
+  const d = data[k] || {};
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  document.getElementById('today-label').textContent = days[TODAY.getDay()] + ' ' + TODAY.getDate() + ' ' + months[TODAY.getMonth()];
+
+  HABITS.forEach(h => {
+    const card = document.getElementById('card-' + h);
+    const status = document.getElementById('status-' + h);
+    if (d[h]) {
+      card.classList.add('done');
+      status.textContent = h === 'pompes' ? '✓ Fait !' : h === 'alcool' ? '✓ Clean' : '✓ Bougé !';
+    } else {
+      card.classList.remove('done');
+      status.textContent = h === 'pompes' ? '36 pompes' : h === 'alcool' ? 'À valider' : 'À faire';
+    }
+  });
+}
+
+function renderScores() {
+  HABITS.forEach(h => {
+    document.getElementById('score-' + h).textContent = Object.values(data).filter(d => d && d[h]).length;
+  });
+}
+
+function renderStreak() {
+  let streak = 0;
+  const cur = new Date(TODAY);
+  while (true) {
+    const k = dateKey(cur);
+    const d = data[k];
+    if (!d || !HABITS.every(h => d[h])) break;
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  document.getElementById('streak-count').textContent = streak;
+}
+
+function renderAll() {
+  renderToday();
+  renderScores();
+  renderStreak();
+  renderGrid();
+}
+
+load();
+renderAll();
+</script>
+</body>
+</html>
