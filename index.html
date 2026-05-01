@@ -218,6 +218,65 @@
   .week-day-labels { display: flex; gap: 2px; margin-left: 31px; margin-bottom: 2px; }
   .wdl { font-size: 9px; color: var(--text-3); text-align: center; font-family: 'DM Mono', monospace; }
   .year-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin: 10px 0 4px; font-family: 'DM Mono', monospace; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 36px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideup 0.2s ease;
+  }
+  @keyframes slideup { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .modal-title { font-size: 16px; font-weight: 500; }
+  .modal-close {
+    background: var(--bg);
+    border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-habits { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .modal-habit {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 8px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.1s;
+    user-select: none;
+  }
+  .modal-habit:active { transform: scale(0.96); }
+  .modal-habit.done { border-color: transparent; }
+  .modal-habit-pompes.done { background: var(--blue); }
+  .modal-habit-alcool.done { background: var(--green); }
+  .modal-habit-sport.done { background: var(--amber); }
+  .modal-habit .habit-icon { font-size: 18px; margin-bottom: 6px; }
+  .modal-habit .habit-name { font-size: 11px; color: var(--text-2); margin-bottom: 2px; }
+  .modal-habit .habit-status { font-size: 11px; font-weight: 500; }
+  .modal-habit.done .habit-name { color: rgba(255,255,255,0.65); }
+  .modal-habit.done .habit-status { color: rgba(255,255,255,0.95); }
 </style>
 </head>
 <body>
@@ -280,6 +339,16 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-habits" id="modal-habits"></div>
+  </div>
+</div>
+
 <script>
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const HABITS = ['pompes','alcool','sport'];
@@ -336,8 +405,52 @@ function makeDayCell(dateStr, isFuture, size) {
     const done = dayData ? HABITS.filter(h => dayData[h]).map(h => LABELS[h]) : [];
     const tip = d.getDate() + ' ' + ms[d.getMonth()] + (done.length ? ' — ' + done.join(', ') : ' — rien');
     cell.title = tip;
+    cell.style.cursor = 'pointer';
+    cell.addEventListener('click', () => openModal(dateStr));
   }
   return cell;
+}
+
+function openModal(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const ms = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const isToday = dateStr === todayKey();
+  document.getElementById('modal-title').textContent = isToday ? "Aujourd'hui" : days[d.getDay()] + ' ' + d.getDate() + ' ' + ms[d.getMonth()];
+  renderModalHabits(dateStr);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function renderModalHabits(dateStr) {
+  const container = document.getElementById('modal-habits');
+  container.innerHTML = '';
+  const dayData = data[dateStr] || {};
+  const icons = { pompes:'💪', alcool:'🚱', sport:'🏃' };
+  const names = { pompes:'Pompes', alcool:'Sans alcool', sport:'Sport' };
+  const statuses = {
+    pompes: { on:'✓ Fait !', off:'36 pompes' },
+    alcool: { on:'✓ Clean', off:'À valider' },
+    sport:  { on:'✓ Bougé !', off:'À faire' }
+  };
+  HABITS.forEach(h => {
+    const card = document.createElement('div');
+    card.className = 'modal-habit modal-habit-' + h + (dayData[h] ? ' done' : '');
+    card.innerHTML = '<span class="habit-icon" style="font-size:18px">' + icons[h] + '</span><div class="habit-name">' + names[h] + '</div><div class="habit-status">' + (dayData[h] ? statuses[h].on : statuses[h].off) + '</div>';
+    card.addEventListener('click', () => {
+      if (!data[dateStr]) data[dateStr] = {};
+      data[dateStr][h] = !data[dateStr][h];
+      save();
+      renderModalHabits(dateStr);
+      renderAll();
+    });
+    container.appendChild(card);
+  });
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
 }
 
 function setView(v, btn) {
